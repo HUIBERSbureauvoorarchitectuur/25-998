@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <title>MindAR Image Tracking AR Demo</title>
+  
+  <!-- Three.js library -->
+  <script src="https://cdn.jsdelivr.net/npm/three@0.152.0/build/three.min.js"></script>
+  <!-- GLTFLoader voor .glb modellen -->
+  <script src="https://cdn.jsdelivr.net/npm/three@0.152.0/examples/js/loaders/GLTFLoader.js"></script>
+  <!-- MindAR Image tracking -->
+  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.1.4/dist/mindar-image-three.prod.js"></script>
+  
+  <style>
+    body, html {
+      margin: 0; padding: 0; overflow: hidden;
+      width: 100vw; height: 100vh;
+      background-color: #000;
+    }
+    #ar-container {
+      width: 100%; height: 100%;
+      position: relative;
+    }
+  </style>
+</head>
+<body>
+  <div id="ar-container"></div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", async () => {
+      // Initialiseer MindAR met jouw target bestand
+      const mindarThree = new window.MINDAR.IMAGE.MindARThree({
+        container: document.querySelector("#ar-container"),
+        imageTargetSrc: "./target.mind",
+      });
+      const { renderer, scene, camera } = mindarThree;
+
+      // Voeg licht toe voor het model
+      const light = new THREE.HemisphereLight(0xffffff, 0xbbbbff, 1);
+      scene.add(light);
+
+      // Maak een GLTF loader aan om je .glb model te laden
+      const loader = new THREE.GLTFLoader();
+
+      // Maak een anchor aan - dat is de plek waar het model verschijnt bij herkenning
+      const anchor = mindarThree.addAnchor(0);
+
+      // Laad het 3D model en voeg toe aan anchor groep
+      loader.load('astronaut.glb', (gltf) => {
+        const model = gltf.scene;
+        model.scale.set(0.1, 0.1, 0.1);   // pas schaal aan indien nodig
+        model.position.set(0, 0, 0);
+        anchor.group.add(model);
+      }, undefined, (error) => {
+        console.error('Fout bij laden model:', error);
+      });
+
+      // Start de AR sessie
+      await mindarThree.start();
+
+      // Animatie loop
+      renderer.setAnimationLoop(() => {
+        renderer.render(scene, camera);
+      });
+    });
+  </script>
+</body>
+</html>
